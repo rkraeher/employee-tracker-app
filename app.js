@@ -13,7 +13,7 @@ const connection = mysql.createConnection({
 
 //Put all these in a separate class file.
 function viewAllEmployees() {
-  connection.query("SELECT id, first_name, last_name FROM employee", function (err, res) {
+  connection.query("SELECT e.id, first_name, last_name, title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id", function (err, res) {
     if (err) throw err;
     const allEmployees = res;
     const table = cTable.getTable(allEmployees);
@@ -21,6 +21,13 @@ function viewAllEmployees() {
     menu();
   });
 }
+
+// function viewByDept() {
+//   connection.query("SELECT id, first_name, last_name, FROM employee", function (err, res) {
+//     if (err) throw err;
+
+//   }
+// }
 
 function viewEmployees() {
   inquirer
