@@ -11,9 +11,22 @@ const connection = mysql.createConnection({
   database: "company_DB"
 });
 
+
+// function getDepts() {
+//   connection.query("SELECT dept_name FROM department", function (err, res) {
+//     if (err) throw err;
+//     let departments = res.map(dept => dept.dept_name);
+//     return departments;
+//   });
+// }
+
+
+const departments = ["Engineering", "Sales"];
+
 //Put all these in a separate class file.
 function viewAllEmployees() {
-  connection.query("SELECT e.id, first_name, last_name, title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id", function (err, res) {
+  connection.query("SELECT e.id, first_name, last_name, title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id ORDER BY dept_name ASC", function (err, res) {
+    //Add a ORDER BY dept_name 
     if (err) throw err;
     const allEmployees = res;
     const table = cTable.getTable(allEmployees);
@@ -22,12 +35,28 @@ function viewAllEmployees() {
   });
 }
 
-// function viewByDept() {
-//   connection.query("SELECT id, first_name, last_name, FROM employee", function (err, res) {
-//     if (err) throw err;
-
-//   }
-// }
+function viewDept() {
+  inquirer
+  .prompt([
+    {
+      type: "list",
+      message: "Which department would you like to see?",
+      choices: departments,
+      name: "viewDepartment",
+    },
+  ])
+  .then(response => {
+    const dept = response.viewDepartment;
+    const query = "SELECT e.id, first_name, last_name, title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id WHERE dept_name=? ORDER BY title ASC";
+    connection.query(query, [dept], function (err, res) {
+      if (err) throw err;
+      const employeesByDept = res;
+      const table = cTable.getTable(employeesByDept);
+      console.log(table);
+      menu();
+    });
+  }); 
+}
 
 function viewEmployees() {
   inquirer
@@ -37,8 +66,7 @@ function viewEmployees() {
         message: "How would you like to view personnel?",
         choices: [
           "View all employees",
-          "View by employee department",
-          "View by employee role",
+          "View a department",
           "Return to main menu",
         ],
         name: "viewEmployees",
@@ -50,10 +78,8 @@ function viewEmployees() {
       switch (viewEmployees) {
         case "View all employees":
           return viewAllEmployees();
-        case "View by employee department":
-          return //function
-        case "View by employee role":
-          return; //function;
+        case "View a department":
+          return viewDept();
         case "Return to main menu":
           menu();
       }
@@ -94,5 +120,20 @@ function menu() {
 
 connection.connect(function (err) {
   if (err) throw err;
+  //1. have it clear terminal and 
+  //2. display my ascii image
+  //3. functions (menu)
   menu();
+
+  let departments = (function() {
+    connection.query("SELECT dept_name FROM department", function (err, res) {
+      if (err) throw err;
+      let allDepts = res.map(dept => dept.dept_name);
+      console.log(allDepts); //This consoles correctly
+      return allDepts;
+    });
+  })();
+  console.log("\n");
+  console.log(departments); //But this consoles undefined...
+  
 });
