@@ -60,35 +60,35 @@ function viewDept(departments) {
 }
 
 // INSERTIONS
-// function add() {
-//   inquirer
-//     .prompt([
-//       {
-//         type: "list",
-//         message: "What would you like to add?",
-//         choices: [
-//           "Add a department",
-//           "Add a role",
-//           "Add an employee",
-//           "Return to main menu"
-//         ],
-//         name: "add",
-//       }
-//     ])
-//     .then((response) => {
-//       const { add } = response;
-//       switch (add) {
-//         case "Add a department":
-//           return //insert dept query;
-//         case "Add a role":
-//           return //insert role query;
-//         case "Add an employee":
-//           return //insert emp query;
-//         case "Return to main menu":
-//           return menu();
-//       }
-//     });
-// }
+function add() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: "What would you like to add?",
+        choices: [
+          "Add a department",
+          "Add a role",
+          "Add an employee",
+          "Return to main menu"
+        ],
+        name: "add",
+      }
+    ])
+    .then((response) => {
+      const { add } = response;
+      switch (add) {
+        case "Add a department":
+          return //insert dept query;
+        case "Add a role":
+          return //insert role query;
+        case "Add an employee":
+          return //insert emp query;
+        case "Return to main menu":
+          return menu();
+      }
+    });
+}
 
 // function addDept() {
 //   inquirer
