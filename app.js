@@ -17,6 +17,9 @@ const connection = mysql.createConnection({
 // INITIATE APPLICATION
 menu();
 
+// VALIDATORS
+const validateIsNumber = input => { if (!isNaN(input)) return true };
+
 // VIEW QUERIES
 function viewAllEmployees() {
   connection.query("SELECT e.id, first_name, last_name, title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id ORDER BY dept_name ASC", function (err, res) {
@@ -81,7 +84,7 @@ function add() {
         case "Add a department":
           return addDept();
         case "Add a role":
-          return //insert role query;
+          return addRoleFrom();
         case "Add an employee":
           return //insert emp query;
         case "Return to main menu":
@@ -108,6 +111,72 @@ function addDept() {
       });
     });
 }
+
+function addRoleFrom() {
+  connection.query("SELECT dept_name FROM department", function (err, res) {
+    if (err) throw err;
+    let allDepts = res.map(dept => dept.dept_name);
+    addRole(allDepts);
+  });
+}
+
+function addRole(departments) {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: "You may only add roles to existing departments. Please select the department to which you would like to add a role first.",
+        name: "roleDept",
+        choices: departments
+      },
+      {
+        type: "input",
+        message: "Enter the role that you would like to add to this department.",
+        name: "role"
+      },
+      {
+        type: "input",
+        message: "Enter the salary for that role.",
+        name: "salary"
+      }
+    ]).then(response => {
+      const { roleDept, role, salary } = response;
+      connection.query("SELECT id FROM department WHERE dept_name=?", [roleDept], function (err, res) {
+        if (err) throw err;
+        let id = res[0].id;
+        insert(role, salary, id, roleDept);
+      });
+    });
+}
+
+function insert(role, salary, id, roleDept) {
+  let salaryInput = Number(salary);
+  connection.query("INSERT INTO employee_role SET ?", [
+    {
+      title: role,
+      salary: salaryInput,
+      department_id: id
+    },
+  ], function (err, res) {
+    if (err) throw err;
+    console.log(`You have successfully added ${role} to the ${roleDept} department!`);
+    console.log('');
+    console.log(`${roleDept} Roles`)
+    console.log('');
+    connection.query("SELECT title, salary FROM employee_role AS er INNER JOIN department AS d ON er.department_id = d.id WHERE ?", [
+      {
+        department_id: id
+      }
+    ], function (err, res) {
+      if (err) throw err;
+      const allRoles = res;
+      const table = cTable.getTable(allRoles);
+      console.log(table);
+      //TODO: Prompt them to add another role (general menu) or return to main menu
+    });
+  });
+}
+
 
 // MENU FUNCTIONS
 function menu() {
