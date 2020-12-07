@@ -1,16 +1,20 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-const dotenv = require("dotenv").config();
+require("dotenv").config();
 const cTable = require("console.table");
 
 const connection = mysql.createConnection({
   host: "localhost",
   port: 3306,
   user: "root",
-  password: "costume88",
-  database: "company_DB"
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
 });
 
+//1. have it clear terminal and 
+//2. display my ascii image
+//3. functions (menu)
+menu();
 
 // function getDepts() {
 //   connection.query("SELECT dept_name FROM department", function (err, res) {
@@ -20,8 +24,19 @@ const connection = mysql.createConnection({
 //   });
 // }
 
+// departments = () => {
+//   connection.query("SELECT dept_name FROM department", function (err, res) {
+//     if (err) throw err;
+//     let allDepts = res.map(dept => dept.dept_name);
+//     console.log(allDepts); //This consoles correctly
+//     //viewDept(allDepts);
+//     return allDepts;
+//   });
+// };
+//console.log(departments); //But this consoles undefined...
+//What I need is to maybe have a function that I can pass the AllDepts through to give me a value that I save to a variable
 
-const departments = ["Engineering", "Sales"];
+//const departments = ["Engineering", "Sales"]; Placeholder
 
 //Put all these in a separate class file.
 function viewAllEmployees() {
@@ -35,27 +50,27 @@ function viewAllEmployees() {
   });
 }
 
-function viewDept() {
+function viewDept(departments) {
   inquirer
-  .prompt([
-    {
-      type: "list",
-      message: "Which department would you like to see?",
-      choices: departments,
-      name: "viewDepartment",
-    },
-  ])
-  .then(response => {
-    const dept = response.viewDepartment;
-    const query = "SELECT e.id, first_name, last_name, title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id WHERE dept_name=? ORDER BY title ASC";
-    connection.query(query, [dept], function (err, res) {
-      if (err) throw err;
-      const employeesByDept = res;
-      const table = cTable.getTable(employeesByDept);
-      console.log(table);
-      menu();
+    .prompt([
+      {
+        type: "list",
+        message: "Which department would you like to see?",
+        choices: departments,
+        name: "viewDepartment",
+      },
+    ])
+    .then(response => {
+      const dept = response.viewDepartment;
+      const query = "SELECT e.id, first_name, last_name, title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id WHERE dept_name=? ORDER BY title ASC";
+      connection.query(query, [dept], function (err, res) {
+        if (err) throw err;
+        const employeesByDept = res;
+        const table = cTable.getTable(employeesByDept);
+        console.log(table);
+        menu();
+      });
     });
-  }); 
 }
 
 function viewEmployees() {
@@ -79,7 +94,7 @@ function viewEmployees() {
         case "View all employees":
           return viewAllEmployees();
         case "View a department":
-          return viewDept();
+          return viewDept(departments);
         case "Return to main menu":
           menu();
       }
@@ -120,20 +135,4 @@ function menu() {
 
 connection.connect(function (err) {
   if (err) throw err;
-  //1. have it clear terminal and 
-  //2. display my ascii image
-  //3. functions (menu)
-  menu();
-
-  let departments = (function() {
-    connection.query("SELECT dept_name FROM department", function (err, res) {
-      if (err) throw err;
-      let allDepts = res.map(dept => dept.dept_name);
-      console.log(allDepts); //This consoles correctly
-      return allDepts;
-    });
-  })();
-  console.log("\n");
-  console.log(departments); //But this consoles undefined...
-  
 });
