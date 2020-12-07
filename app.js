@@ -72,14 +72,14 @@ function add() {
           "Add an employee",
           "Return to main menu"
         ],
-        name: "add",
+        name: "add"
       }
     ])
     .then((response) => {
       const { add } = response;
       switch (add) {
         case "Add a department":
-          return //insert dept query;
+          return addDept();
         case "Add a role":
           return //insert role query;
         case "Add an employee":
@@ -90,14 +90,24 @@ function add() {
     });
 }
 
-// function addDept() {
-//   inquirer
-//   .prompt([
-//     {
-//       type:
-//     }
-//   ])
-// }
+function addDept() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "Please enter the name of a department to add it to the database.",
+        name: "addDept"
+      }
+    ])
+    .then((response) => {
+      const { addDept } = response;
+      connection.query("INSERT INTO department SET ?", { dept_name: addDept }, function (err, res) {
+        if (err) throw err;
+        console.log(`You have successfully added a new department, ${addDept}, to your company database!`);
+        getAllDepts();
+      });
+    });
+}
 
 // MENU FUNCTIONS
 function menu() {
