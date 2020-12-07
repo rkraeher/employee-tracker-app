@@ -1,7 +1,7 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
-require("dotenv").config();
 const cTable = require("console.table");
+require("dotenv").config();
 
 const connection = mysql.createConnection({
   host: "localhost",
@@ -13,35 +13,13 @@ const connection = mysql.createConnection({
 
 //1. have it clear terminal and 
 //2. display my ascii image
-//3. functions (menu)
+
+// INITIATE APPLICATION
 menu();
 
-// function getDepts() {
-//   connection.query("SELECT dept_name FROM department", function (err, res) {
-//     if (err) throw err;
-//     let departments = res.map(dept => dept.dept_name);
-//     return departments;
-//   });
-// }
-
-// departments = () => {
-//   connection.query("SELECT dept_name FROM department", function (err, res) {
-//     if (err) throw err;
-//     let allDepts = res.map(dept => dept.dept_name);
-//     console.log(allDepts); //This consoles correctly
-//     //viewDept(allDepts);
-//     return allDepts;
-//   });
-// };
-//console.log(departments); //But this consoles undefined...
-//What I need is to maybe have a function that I can pass the AllDepts through to give me a value that I save to a variable
-
-//const departments = ["Engineering", "Sales"]; Placeholder
-
-//Put all these in a separate class file.
+// VIEW QUERIES
 function viewAllEmployees() {
   connection.query("SELECT e.id, first_name, last_name, title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id ORDER BY dept_name ASC", function (err, res) {
-    //Add a ORDER BY dept_name 
     if (err) throw err;
     const allEmployees = res;
     const table = cTable.getTable(allEmployees);
@@ -49,6 +27,14 @@ function viewAllEmployees() {
     menu();
   });
 }
+
+function getAllDepts() {
+  connection.query("SELECT dept_name FROM department", function (err, res) {
+    if (err) throw err;
+    let allDepts = res.map(dept => dept.dept_name);
+    viewDept(allDepts);
+  });
+};
 
 function viewDept(departments) {
   inquirer
@@ -73,34 +59,47 @@ function viewDept(departments) {
     });
 }
 
-function viewEmployees() {
-  inquirer
-    .prompt([
-      {
-        type: "list",
-        message: "How would you like to view personnel?",
-        choices: [
-          "View all employees",
-          "View a department",
-          "Return to main menu",
-        ],
-        name: "viewEmployees",
-      },
-    ])
-    .then((response) => {
-      const { viewEmployees } = response;
+// INSERTIONS
+// function add() {
+//   inquirer
+//     .prompt([
+//       {
+//         type: "list",
+//         message: "What would you like to add?",
+//         choices: [
+//           "Add a department",
+//           "Add a role",
+//           "Add an employee",
+//           "Return to main menu"
+//         ],
+//         name: "add",
+//       }
+//     ])
+//     .then((response) => {
+//       const { add } = response;
+//       switch (add) {
+//         case "Add a department":
+//           return //insert dept query;
+//         case "Add a role":
+//           return //insert role query;
+//         case "Add an employee":
+//           return //insert emp query;
+//         case "Return to main menu":
+//           return menu();
+//       }
+//     });
+// }
 
-      switch (viewEmployees) {
-        case "View all employees":
-          return viewAllEmployees();
-        case "View a department":
-          return viewDept(departments);
-        case "Return to main menu":
-          menu();
-      }
-    });
-}
+// function addDept() {
+//   inquirer
+//   .prompt([
+//     {
+//       type:
+//     }
+//   ])
+// }
 
+// MENU FUNCTIONS
 function menu() {
   inquirer
     .prompt([
@@ -122,13 +121,41 @@ function menu() {
 
       switch (menu) {
         case "Add a department, role, or employee":
-          return; //function;
+          return add();
         case "View employees":
           return viewEmployees();
         case "Update employee roles":
           return; //function;
         case "Quit this menu":
           connection.end();
+      }
+    });
+}
+
+function viewEmployees() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: "How would you like to view personnel?",
+        choices: [
+          "View all employees",
+          "View a department",
+          "Return to main menu",
+        ],
+        name: "viewEmployees",
+      },
+    ])
+    .then((response) => {
+      const { viewEmployees } = response;
+
+      switch (viewEmployees) {
+        case "View all employees":
+          return viewAllEmployees();
+        case "View a department":
+          return getAllDepts();
+        case "Return to main menu":
+          menu();
       }
     });
 }
