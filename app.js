@@ -18,7 +18,13 @@ const connection = mysql.createConnection({
 menu();
 
 // VALIDATORS
-const validateIsNumber = input => { if (!isNaN(input)) return true };
+const validateIsNumber = input => {
+  if (!isNaN(input)) {
+    return true;
+  } else {
+    console.log('\n', "Error: please enter a valid number for salary."); //TODO: Add chalk
+  }
+};
 
 // VIEW QUERIES
 function viewAllEmployees() {
@@ -86,7 +92,7 @@ function add() {
         case "Add a role":
           return addRoleFrom();
         case "Add an employee":
-          return //insert emp query;
+          return //insert employee query;
         case "Return to main menu":
           return menu();
       }
@@ -137,7 +143,8 @@ function addRole(departments) {
       {
         type: "input",
         message: "Enter the salary for that role.",
-        name: "salary"
+        name: "salary",
+        validate: validateIsNumber
       }
     ]).then(response => {
       const { roleDept, role, salary } = response;
@@ -173,6 +180,19 @@ function insert(role, salary, id, roleDept) {
       const table = cTable.getTable(allRoles);
       console.log(table);
       //TODO: Prompt them to add another role (general menu) or return to main menu
+      inquirer
+        .prompt([
+          {
+            type: "confirm",
+            message: "Would you like to add another role?",
+            name: "addAnother",
+            choices: [
+              "Add another role",
+              "Return to main menu",
+              "Quit program"
+            ]
+          },
+        ])
     });
   });
 }
