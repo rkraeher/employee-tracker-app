@@ -166,7 +166,7 @@ function insert(role, salary, id, roleDept) {
     },
   ], function (err, res) {
     if (err) throw err;
-    console.log(`You have successfully added ${role} to the ${roleDept} department!`);
+    console.log('\n', `You have successfully added ${role} to the ${roleDept} department!`);
     console.log('');
     console.log(`${roleDept} Roles`)
     console.log('');
@@ -179,20 +179,22 @@ function insert(role, salary, id, roleDept) {
       const allRoles = res;
       const table = cTable.getTable(allRoles);
       console.log(table);
-      //TODO: Prompt them to add another role (general menu) or return to main menu
+      console.log("======================", '\n');
       inquirer
         .prompt([
           {
             type: "confirm",
             message: "Would you like to add another role?",
-            name: "addAnother",
-            choices: [
-              "Add another role",
-              "Return to main menu",
-              "Quit program"
-            ]
+            name: "addAnother"
           },
         ])
+        .then(answer => {
+          if (answer === true) {
+            addRoleFrom();
+          } else {
+            menu();
+          }
+        });
     });
   });
 }
@@ -226,6 +228,7 @@ function menu() {
         case "Update employee roles":
           return; //function;
         case "Quit this menu":
+          //Goodbye!
           connection.end();
       }
     });
