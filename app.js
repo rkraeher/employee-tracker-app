@@ -1,6 +1,8 @@
 const mysql = require("mysql");
 const inquirer = require("inquirer");
 const cTable = require("console.table");
+const chalk = require("chalk");
+const figlet = require("figlet");
 require("dotenv").config();
 
 const connection = mysql.createConnection({
@@ -11,9 +13,12 @@ const connection = mysql.createConnection({
   database: process.env.DB_NAME
 });
 
-//2. display my ascii image
-
 // INITIATE APPLICATION
+console.log(
+  chalk.green(
+    figlet.textSync('Employee Tracker', { horizontalLayout: 'full' })
+  ), '\n'
+);
 menu();
 
 // VALIDATORS
@@ -21,7 +26,7 @@ const validateIsNumber = input => {
   if (!isNaN(input)) {
     return true;
   } else {
-    console.log('\n', "Error: please enter a valid number for salary."); //TODO: Add chalk
+    console.log('\n', chalk.red("Error: please enter a valid number for salary."));
   }
 };
 
@@ -398,7 +403,7 @@ function menu() {
         case "Update employee role":
           return update();
         case "Quit this menu":
-          console.log('\n', "Logging off Employee Tracker App.");
+          console.log('\n', chalk.green("Logging off Employee Tracker App. Goodbye!"));
           connection.end();
       }
     });
