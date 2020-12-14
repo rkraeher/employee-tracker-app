@@ -92,7 +92,7 @@ function add() {
         case "Add a role":
           return addRoleFrom();
         case "Add an employee":
-          return //insert employee query;
+          return addEmpFrom();
         case "Return to main menu":
           return menu();
       }
@@ -124,6 +124,81 @@ function addRoleFrom() {
     let allDepts = res.map(dept => dept.dept_name);
     addRole(allDepts);
   });
+}
+
+//This initiates the add employee process. 
+function addEmpFrom() {
+  connection.query("SELECT dept_name FROM department", function (err, res) {
+    if (err) throw err;
+    let allDepts = res.map(dept => dept.dept_name);
+    addEmpTo(allDepts);
+  });
+}
+
+function addEmpTo(departments) {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: "To which department would you like to add an employee?",
+        name: "newEmpDept",
+        choices: departments
+      },
+    ])
+    .then(response => {
+      const { newEmpDept } = response;
+      connection.query("SELECT title FROM employee_role AS er INNER JOIN department AS d ON d.dept_name = ? WHERE er.department_id = d.id", [newEmpDept], function (err, res) {
+        if (err) throw err;
+        let deptRoles = res.map(role => role.title);
+        inquirer
+          .prompt([
+            {
+              type: "list",
+              message: "In what role are you adding this new employee?",
+              name: "role",
+              choices: deptRoles
+            }
+          ])
+          .then(data => {
+            const { role } = data;
+            connection.query("SELECT id FROM employee_role WHERE title = ?", [role], function (err, res) {
+              if (err) throw err;
+              const id = res[0].id;
+              addNewEmployee(id, role, newEmpDept);
+            });
+          });
+      });
+    });
+}
+
+function addNewEmployee(id, role, dept) {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "Enter the new employee's LAST name.",
+        name: "last_name"
+      },
+      {
+        type: "input",
+        message: "Enter the new employee's FIRST name.",
+        name: "first_name"
+      }
+    ])
+    .then(names => {
+      const { last_name, first_name } = names;
+      connection.query("INSERT INTO employee SET ?", [
+        {
+          first_name: first_name,
+          last_name: last_name,
+          role_id: id
+        },
+      ], function (err, res) {
+        if (err) throw err;
+        console.log('\n', `You have successfully added ${first_name} ${last_name} as a ${role} in the ${dept} department.`, '\n');
+        viewAllEmployees();
+      });
+    });
 }
 
 function addRole(departments) {
@@ -198,7 +273,6 @@ function insert(role, salary, id, roleDept) {
     });
   });
 }
-
 
 // MENU FUNCTIONS
 function menu() {
