@@ -11,7 +11,6 @@ const connection = mysql.createConnection({
   database: process.env.DB_NAME
 });
 
-//1. have it clear terminal and 
 //2. display my ascii image
 
 // INITIATE APPLICATION
@@ -302,7 +301,7 @@ function update() {
 }
 
 function getRole(employee) {
-  connection.query("SELECT title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id WHERE ? AND ?", [
+  connection.query("SELECT e.id, title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id WHERE ? AND ?", [
     {
       last_name: employee.last_name,
     },
@@ -311,22 +310,65 @@ function getRole(employee) {
     }
   ], function (err, res) {
     if (err) throw err;
+    let employeeId = res[0].id;
+    let currentRole = res[0].title;
     let dept = res[0].dept_name;
-    allRoles(dept, employee);
+    allRoles(dept, currentRole, employee, employeeId);
   });
 }
 
-function allRoles(dept, employee) {
-  connection.query("SELECT title, salary FROM employee_role AS er INNER JOIN department AS d ON er.department_id = d.id WHERE d.dept_name = ?", [dept], function (err, res) {
+function allRoles(dept, role, employee, eId) {
+  connection.query("SELECT er.id, title, salary FROM employee_role AS er INNER JOIN department AS d ON er.department_id = d.id WHERE d.dept_name = ?", [dept], function (err, res) {
     if (err) throw err;
-    //1. Make res into a choices array like above and save the new role they pick.
-    console.log(res);
-    console.log(employee);
+    const currentRole = role;
+    const employeeId = eId;
+    const department = dept;
+    const { title, salary, id } = res;
+    const { first_name, last_name } = employee;
+    const fullName = `${first_name} ${last_name}`;
+    let allDeptRoles = res.map(({ title, salary, id }) => (
+      {
+        name: title,
+        value: { title, salary, id },
+        short: title
+      }
+    ));
+    updateEmployee(currentRole, fullName, employeeId, allDeptRoles, department);
   });
 }
 
-//2. update db for that employee with new role (title, salary)
-//3. display the dept with the updated role. 
+function updateEmployee(role, name, id, allRoles, dept) {
+  const department = dept;
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: `To what role are you reassigning ${role} ${name}?`,
+        choices: allRoles,
+        name: "newRole"
+      }
+    ])
+    .then(response => {
+      const { newRole } = response;
+      connection.query("UPDATE employee AS e SET ? WHERE e.id = ?", [
+        {
+          role_id: newRole.id,
+        },
+        id
+      ], function (err, res) {
+        if (err) throw err;
+        console.log(`You have updated employee ${name} to their new role, ${newRole.title}.`, '\n');
+        const query = "SELECT e.id, first_name, last_name, title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id WHERE dept_name=? ORDER BY title ASC";
+        connection.query(query, [department], function (err, res) {
+          if (err) throw err;
+          const employeesByDept = res;
+          const table = cTable.getTable(employeesByDept);
+          console.log(table);
+          menu();
+        });
+      });
+    });
+}
 
 // MENU FUNCTIONS
 function menu() {
