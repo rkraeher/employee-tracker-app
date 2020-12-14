@@ -32,7 +32,7 @@ function viewAllEmployees() {
     if (err) throw err;
     const allEmployees = res;
     const table = cTable.getTable(allEmployees);
-    console.log(table);
+    console.log('\n', table);
     menu();
   });
 }
@@ -126,7 +126,7 @@ function addRoleFrom() {
   });
 }
 
-//This initiates the add employee process. 
+// Initiate add employee procedure
 function addEmpFrom() {
   connection.query("SELECT dept_name FROM department", function (err, res) {
     if (err) throw err;
@@ -195,7 +195,7 @@ function addNewEmployee(id, role, dept) {
         },
       ], function (err, res) {
         if (err) throw err;
-        console.log('\n', `You have successfully added ${first_name} ${last_name} as a ${role} in the ${dept} department.`, '\n');
+        console.log('\n', `You have successfully added ${first_name} ${last_name} as a ${role} to the ${dept} department.`, '\n');
         viewAllEmployees();
       });
     });
@@ -274,6 +274,60 @@ function insert(role, salary, id, roleDept) {
   });
 }
 
+// UPDATE AN EMPLOYEE ROLE
+function update() {
+  connection.query("SELECT last_name, first_name FROM employee ORDER BY last_name ASC", function (err, res) {
+    if (err) throw err;
+    let allEmployees = res.map(({ last_name, first_name }) => (
+      {
+        name: last_name + " " + first_name,
+        value: { last_name, first_name },
+        short: first_name + " " + last_name
+      }
+    ));
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          message: "Which employee would you like to update?",
+          name: "employee",
+          choices: allEmployees
+        }
+      ])
+      .then(response => {
+        const { employee } = response;
+        getRole(employee);
+      })
+  });
+}
+
+function getRole(employee) {
+  connection.query("SELECT title, salary, dept_name FROM employee AS e INNER JOIN employee_role AS er ON e.role_id = er.id INNER JOIN department AS d ON er.department_id = d.id WHERE ? AND ?", [
+    {
+      last_name: employee.last_name,
+    },
+    {
+      first_name: employee.first_name
+    }
+  ], function (err, res) {
+    if (err) throw err;
+    let dept = res[0].dept_name;
+    allRoles(dept, employee);
+  });
+}
+
+function allRoles(dept, employee) {
+  connection.query("SELECT title, salary FROM employee_role AS er INNER JOIN department AS d ON er.department_id = d.id WHERE d.dept_name = ?", [dept], function (err, res) {
+    if (err) throw err;
+    //1. Make res into a choices array like above and save the new role they pick.
+    console.log(res);
+    console.log(employee);
+  });
+}
+
+//2. update db for that employee with new role (title, salary)
+//3. display the dept with the updated role. 
+
 // MENU FUNCTIONS
 function menu() {
   inquirer
@@ -299,10 +353,10 @@ function menu() {
           return add();
         case "View employees":
           return viewEmployees();
-        case "Update employee roles":
-          return; //function;
+        case "Update employee role":
+          return update();
         case "Quit this menu":
-          //Goodbye!
+          console.log('\n', "Logging off Employee Tracker App.");
           connection.end();
       }
     });
