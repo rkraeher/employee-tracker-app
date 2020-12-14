@@ -24,7 +24,9 @@ Node.js and MySQL
 
 ## Demo
 
-![Screenshot of deployed app](demo.png)    
+![Screenshot of deployed app](demo.png) 
+
+<img src="demo-vid.gif" alt="demo video">
 
 ## License 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
